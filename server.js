@@ -3,6 +3,7 @@ const BodyParser = require('body-parser');
 const Mongoose = require('mongoose');
 
 const Product = require('./models/product');
+const User = require('./models/user');
 
 const app = Express();
 
