@@ -1,43 +1,65 @@
 const Product = require('./product');
 const User = require('./user');
 
-// Product Services
-exports.getProducts = async function (query) {
+// PRODUCT SERVICES
+exports.getProducts = function (query) {
   const products = Product.find(query).select('-_id -__v');
   return products;
 };
 
-exports.getProductSku = async function (request) {
+exports.getProductSku = function (request) {
   const SKU = Product.findOne({ sku: request.params.sku }).select('-_id -__v');
   return SKU;
 };
 
-exports.deleteProductSku = async function (request) {
+exports.postProduct = async function (request) {
+  await new Product(request.body).save();
+};
+
+exports.deleteProduct = function (request) {
+  Product.deleteMany(request.query);
+};
+
+exports.deleteProductSku = function (request) {
   Product.deleteOne({ sku: request.params.sku });
-  return null;
 };
 
-exports.putProductSku = async function (request, sku, product) {
-  Product.findOneAndReplace({ sku }, product, {
-    upsert: true,
-  });
+exports.putProductSku = function (request, sku, product) {
+  const result = Product.findOneAndReplace({ sku }, product, { upsert: true });
+  return result;
 };
 
-exports.patchProductSku = async function (request, sku, product) {
-  Product.findOneAndUpdate({ sku }, product, {
+exports.patchProductSku = function (sku, product) {
+  const result = Product.findOneAndUpdate({ sku }, product, {
     new: true,
   })
     .select('-_id -__v');
+  return result;
 };
 
-// User Services
-exports.getUsers = async function (query) {
+// USER SERVICES
+exports.getUsers = function (query) {
   const users = User.find(query).select('-_id -__v');
   return users;
 };
 
-exports.patchUserSsn = async function (ssn, user) {
-  User.findOneAndUpdate({ ssn }, user, {
+exports.postUser = async function (request) {
+  await new User(request.body).save();
+};
+
+exports.deleteUsers = function (request) {
+  Product.deleteMany(request.query);
+};
+
+exports.putUserSsu = function (ssu, user) {
+  const result = Product.findOneAndReplace({ ssu }, user, { upsert: true });
+  return result;
+};
+
+exports.patchUserSsn = function (ssu, user) {
+  const result = Product.findOneAndUpdate({ ssu }, user, {
     new: true,
-  });
+  })
+    .select('-_id -__v');
+  return result;
 };

@@ -5,9 +5,6 @@ const fs = require('fs');
 const ProductService = require('./models/dataService');
 const UserService = require('./models/dataService');
 
-const Product = require('./models/product');
-const User = require('./models/user');
-
 const app = Express();
 
 app.use(BodyParser.json());
@@ -25,7 +22,7 @@ const doActionThatMightFailValidation = async (request, response, action) => {
   }
 };
 
-// Product controls
+// PRODUCT CONTROLS
 app.get('/products', async (request, response) => {
   await doActionThatMightFailValidation(request, response, async () => {
     response.json(await ProductService.getProducts());
@@ -45,20 +42,20 @@ app.get('/products/:sku', async (request, response) => {
 
 app.post('/products', async (request, response) => {
   await doActionThatMightFailValidation(request, response, async () => {
-    await new Product(request.body).save();
+    await ProductService.postProduct(request);
     response.sendStatus(201);
   });
 });
 
 app.delete('/products', async (request, response) => {
   await doActionThatMightFailValidation(request, response, async () => {
-    response.sendStatus((Product.deleteMany(request.query).deletedCount > 0 ? 200 : 404));
+    response.sendStatus((ProductService.deleteProduct(request).deletedCount > 0 ? 200 : 404));
   });
 });
 
 app.delete('/products/:sku', async (request, response) => {
   await doActionThatMightFailValidation(request, response, async () => {
-    response.sendStatus((ProductService.deleteProductSku().deletedCount > 0 ? 200 : 404));
+    response.sendStatus((ProductService.deleteProductSku(request).deletedCount > 0 ? 200 : 404));
   });
 });
 
@@ -86,7 +83,7 @@ app.patch('/products/:sku', async (request, response) => {
   });
 });
 
-// User controls
+// USER CONTROLS
 app.get('/user', async (request, response) => {
   await doActionThatMightFailValidation(request, response, async () => {
     response.json(await UserService.getUsers());
@@ -95,15 +92,25 @@ app.get('/user', async (request, response) => {
 
 app.post('/user', async (request, response) => {
   await doActionThatMightFailValidation(request, response, async () => {
-    await new User(request.body).save();
+    await UserService.postUser(request);
     response.sendStatus(201);
   });
 });
 
 app.delete('/user', async (request, response) => {
   await doActionThatMightFailValidation(request, response, async () => {
-    response.sendStatus((User.deleteMany(request.query).deletedCount > 0 ? 200 : 404));
+    response.sendStatus((UserService.deleteUsers(request).deletedCount > 0 ? 200 : 404));
   });
+});
+
+app.put('/user/:ssn', async (request, response) => {
+  const { ssn } = request.params;
+  const user = request.body;
+  user.sku = ssn;
+  await doActionThatMightFailValidation(request, response, async () => {
+    await ProductService.putProductSku(ssn, user);
+  });
+  response.sendStatus(200);
 });
 
 app.patch('/user/:ssn', async (request, response) => {
@@ -111,7 +118,7 @@ app.patch('/user/:ssn', async (request, response) => {
     const { ssn } = request.params;
     const user = request.body;
     delete user.ssn;
-    const patchResult = await UserService.patchUserSsn(ssn, user);
+    const patchResult = await ProductService.patchProductSku(ssn, user);
     if (patchResult != null) {
       response.json(patchResult);
     } else {
@@ -120,6 +127,7 @@ app.patch('/user/:ssn', async (request, response) => {
   });
 });
 
+// DATA SERVER CONNECTION
 const passcode = fs.readFileSync('./Passcode/mongoDBpasscode.txt').toString();
 
 (async () => {
